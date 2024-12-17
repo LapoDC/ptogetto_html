@@ -31,11 +31,24 @@ public class Main {
                 header = in.readLine();
                 System.out.println(header);
             } while (!header.isEmpty());
+
             System.out.println("Richiesta terminata\n");
 
-            if (resource.equals("/") || resource.equals("/index.html")) {
-                
-                File file = new File("htdocs/index.html");
+            if (resource.endsWith("/"))
+                resource += "index.html";
+
+            File file = new File("htdocs" + resource);
+
+            if (file.isDirectory()) {
+
+                out.writeBytes(version + " 301 Moved Permanently\n");
+                out.writeBytes("Content-Length: " + 0 + "\n");
+                out.writeBytes("Location: " + resource + "/\n");
+                out.writeBytes("\n");
+
+
+            } else if (file.exists()) {
+
                 InputStream input = new FileInputStream(file);
 
                 out.writeBytes(version + " 200 OK\n");
@@ -44,37 +57,37 @@ public class Main {
                 out.writeBytes("\n");
                 byte[] buf = new byte[8192];
                 int n;
-                while((n = input.read(buf)) != -1){
+                while ((n = input.read(buf)) != -1) {
                     out.write(buf, 0, n);
                 }
                 input.close();
-                
-            } else if (resource.equals("/file.txt")) {
-                String responseBody = "ecco il testo in txt";
-                out.writeBytes(version + " 200 OK\n");
-                out.writeBytes("Content-Type: text/plain\n");
-                out.writeBytes("Content-Length: " + responseBody.length() + "\n");
-                out.writeBytes("\n");
-                out.writeBytes(responseBody);
+
             } else {
+
                 out.writeBytes(version + " 404 Not found\n");
                 out.writeBytes("Content-Length: 0\n");
                 out.writeBytes("\n");
+
             }
+            s.close();
         }
     }
-    private String getContentType(File f){
-            String[] s = f.getName().split("\\.");
-            String ext = s[s.length - 1];
-            switch (ext) {
-                case "html":
-                    return "text/html";
-                case "png":
-                    return "image/png";
-                case "txt":
-                    return "text/plain";
-                default:
-                    break;
-            }
+
+    private static String getContentType(File f) {
+        String[] s = f.getName().split("\\.");
+        String ext = s[s.length - 1];
+        switch (ext) {
+
+            case "html":
+                return "text/html";
+            case "png":
+                return "image/png";
+            case "txt":
+                return "text/plain";
+            default:
+                return "";
+
+        }
+
     }
 }
